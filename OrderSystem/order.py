@@ -6,7 +6,7 @@ from napcat_client import QQMessage
 
 class OrderCommand(Command):
     name = "order"
-    description = "会话/Agent 管理 (切换/列表/重建/status/orderwhite/help)"
+    description = "会话/Agent 管理 (切换/列表/重建/status/help)"
 
     async def handle(self, args: str, msg: QQMessage, ctx: CommandContext) -> str | None:
         ar = ctx.auto_reply
@@ -24,9 +24,8 @@ class OrderCommand(Command):
         elif action in ("重建", "reset", "重建会话"):
             return await ar.order_rebuild_session(msg_type, target)
         elif action in ("status", "状态"):
-            return await ar.order_status(msg_type, target)
-        elif action in ("orderwhite", "orderWhite"):
-            return ar.order_orderwhite(msg_type, target)
+            return ar.order_status(msg_type, target)
+
         elif action in ("help", "帮助", "?"):
             return self._sub_help()
         else:
@@ -39,6 +38,5 @@ class OrderCommand(Command):
             "  .order 列表            - 查看所有可用 Agent\n"
             "  .order 重建会话        - 删除当前会话，下次对话开启新上下文\n"
             "  .order status          - 查看当前会话状态\n"
-            "  .order orderwhite      - 切换本群 order 免@模式\n"
             "  .order help            - 显示此帮助"
         )

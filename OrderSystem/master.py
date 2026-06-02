@@ -6,7 +6,7 @@ from napcat_client import QQMessage
 
 class MasterCommand(Command):
     name = "master"
-    description = "管理操作 (LLMList/LLMChange/LLMStatus/LLMReset/AllResetAgent/OnlyResetAgent)"
+    description = "管理操作 "
 
     async def handle(self, args: str, msg: QQMessage, ctx: CommandContext) -> str | None:
         ar = ctx.auto_reply

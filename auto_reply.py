@@ -34,6 +34,7 @@ from conversation_store import (
     set_conversation_agent,
     touch_active,
 )
+from Temp.store import load_list, save_list
 
 logger = logging.getLogger("auto-reply")
 
@@ -138,7 +139,8 @@ class AutoReply:
 
         self._conversations: dict[str, Conversation] = {}
         self._saved_models: dict[str, str] = {}
-        self._order_whitelist: set[str] = set()  # 群号集合，这些群中 .order 无需 @
+        self._order_whitelist: set[str] = set(load_list("order_whitelist.json"))
+        self._bot_blacklist: set[str] = set(load_list("bot_blacklist.json"))
 
         # 每会话消息队列：保证同一会话内消息顺序处理
         self._queues: dict[str, asyncio.Queue[QQMessage]] = {}
@@ -247,15 +249,16 @@ class AutoReply:
         msg_type = msg.message_type
 
         # --- 指令拦截：以 . 开头的消息优先处理 ---
+        # 群聊中所有指令默认需要 @；已在 order 白名单的群或 .bot orderwhite 本身除外
         text = msg.text.strip()
         if text.startswith("."):
-            parts = text.split(None, 1)
-            cmd_name = parts[0]  # ".order", ".help", etc.
-            # .order 系列需检查权限（.order orderwhite 本身始终允许）
-            is_orderwhite = cmd_name == ".order" and len(parts) > 1 and parts[1].split(None, 1)[0] in ("orderwhite", "orderWhite")
+            parts = text.split(None, 2)
+            cmd_name = parts[0]  # ".help", ".order", ".bot", etc.
+            # .bot orderwhite 始终允许（用于首次设置白名单）
+            is_orderwhite = (cmd_name == ".bot" and len(parts) > 1
+                             and parts[1] in ("orderwhite", "orderWhite"))
             can_cmd = (
                 msg.message_type != "group"
-                or cmd_name != ".order"
                 or target in self._order_whitelist
                 or self._is_at_me(msg)
                 or is_orderwhite
@@ -267,8 +270,6 @@ class AutoReply:
                 reply = await dispatch(text, msg, ctx)
                 if reply:
                     await self._nc.send_msg(msg_type, target, reply)
-            else:
-                await self._nc.send_msg(msg_type, target, ".order 指令需要 @机器人 或使用 .order orderwhite 开启免@模式。")
             return
 
         if not self._should_reply(msg):
@@ -862,6 +863,9 @@ class AutoReply:
             return False
         # 过滤机器人自己的消息，防止自激循环
         if self._self_qq and msg.sender_id == self._self_qq:
+            return False
+        # 群组指令模式：仅响应命令，不参与聊天
+        if msg.message_type == "group" and target in self._bot_blacklist:
             return False
         if msg.message_type == "group":
             if self._reply_to_groups and target not in self._reply_to_groups:
@@ -1464,10 +1468,12 @@ class AutoReply:
             return "orderwhite 仅在群聊中有效。私聊中 .order 指令无需 @。"
         if target in self._order_whitelist:
             self._order_whitelist.discard(target)
-            return f"已关闭本群的 order 免@模式。之后 .order 指令需要 @机器人。"
+            msg = "已关闭本群的 order 免@模式。之后 .order 指令需要 @机器人。"
         else:
             self._order_whitelist.add(target)
-            return f"已开启本群的 order 免@模式。之后 .order 指令无需 @机器人即可生效。"
+            msg = "已开启本群的 order 免@模式。之后 .order 指令无需 @机器人即可生效。"
+        save_list("order_whitelist.json", list(self._order_whitelist))
+        return msg
 
     # ------------------------------------------------------------------
     # 公开命令接口（供 OrderSystem 调用）
@@ -1482,8 +1488,8 @@ class AutoReply:
     async def order_rebuild_session(self, msg_type: str, target: str) -> str:
         return await self._cmd_rebuild_session(msg_type, target)
 
-    async def order_status(self, msg_type: str, target: str) -> str:
-        return await self._cmd_status(msg_type, target)
+    def order_status(self, msg_type: str, target: str) -> str:
+        return self._cmd_status(msg_type, target)  # type: ignore[return-value]
 
     def order_orderwhite(self, msg_type: str, target: str) -> str:
         return self._cmd_order_white(msg_type, target)
@@ -1518,6 +1524,19 @@ class AutoReply:
         if not self._check_admin(sender_id):
             return "⛔ 权限不足。此命令仅限管理员使用。"
         return await self._cmd_admin_only_reset_agent()
+
+    def bot_set(self, msg_type: str, target: str, enabled: bool) -> str:
+        """开关群组的指令模式。enabled=True=恢复正常, False=仅响应指令"""
+        if msg_type != "group":
+            return ".bot 仅在群聊中有效。"
+        if enabled:
+            self._bot_blacklist.discard(target)
+            msg = "已恢复正常回复。"
+        else:
+            self._bot_blacklist.add(target)
+            msg = "已开启指令模式。之后仅响应 .xxx 指令，不参与聊天。"
+        save_list("bot_blacklist.json", list(self._bot_blacklist))
+        return msg
 
     # ------------------------------------------------------------------
     # 内部实现
