@@ -260,6 +260,13 @@ async def init_napcat():
 
             if agents:
                 auto_reply._agents = agents
+                # 为所有 Agent 追加 PlayerLog 工作目录
+                player_log_path = str(Path(__file__).parent / "PlayerLog")
+                for cfg in agents.values():
+                    dirs: list[str] = cfg.get("work_dirs", [])
+                    if player_log_path not in dirs:
+                        dirs.append(player_log_path)
+                        cfg["work_dirs"] = dirs
                 if default_agent and default_agent not in agents:
                     auto_reply._default_agent = list(agents.keys())[0]
                     logger.info(f"默认 Agent 不在拉取列表中，已改为: {auto_reply._default_agent}")
