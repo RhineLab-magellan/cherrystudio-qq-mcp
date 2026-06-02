@@ -1,0 +1,60 @@
+{
+    "debug_mode": 1,
+    "log_level": "INFO",
+    "show_console": true,
+    "admin_qq": "你的QQ号",
+    "global_context": "【QQ 回复规则 - 必须严格遵守】\n你的每一段输出都会直接作为 QQ 消息发送到群聊或私聊...",
+    "napcat": {
+        "ws_host": "127.0.0.1",
+        "ws_port": 3001,
+        "access_token": "你的NapCat访问令牌"
+    },
+    "bridge": {
+        "message_buffer_size": 200
+    },
+    "cherry_api_key": "你的CherryStudio API密钥",
+    "llm": [
+        {
+            "name": "OpenCode",
+            "api_url": "https://opencode.ai/zen/go/v1/chat/completions",
+            "api_key": "你的API密钥",
+            "api_format": "openai",
+            "models": ["minimax-m2.5", "minimax-m2.7"]
+        },
+        {
+            "name": "DeepSeek",
+            "api_url": "https://api.deepseek.com/v1/chat/completions",
+            "api_key": "你的API密钥",
+            "api_format": "openai",
+            "models": ["deepseek-v4-flash", "deepseek-v4-pro"]
+        }
+    ],
+    "default_llm": {
+        "provider": 0,
+        "model": "minimax-m2.5"
+    },
+    "vision_providers": [
+        {
+            "name": "OpenCode",
+            "api_url": "https://opencode.ai/zen/go/v1/chat/completions",
+            "api_key": "你的API密钥",
+            "api_format": "openai",
+            "models": ["qwen3.5-plus"]
+        }
+    ],
+    "default_vision": {
+        "provider": 0,
+        "model": "qwen3.5-plus"
+    },
+    "agent_enabled": true,
+    "agent_timeout_seconds": 60,
+    "agent_whitelist": [],
+    "agents": {},
+    "default_agent": "麦哲伦QQ",
+    "auto_reply": {
+        "enabled": true,
+        "reply_to_groups": [],
+        "reply_to_friends": [],
+        "reply_mode": "mention"
+    }
+}

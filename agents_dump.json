@@ -1,0 +1,69 @@
+[
+  {
+    "name": "智能助手",
+    "id": "agent_1780058745094_ne2tmpplw",
+    "model": "deepseek:deepseek-v4-pro",
+    "type": "claude-code",
+    "accessible_paths": [
+      "C:\\CherryStudio\\Agent\\Helper"
+    ]
+  },
+  {
+    "name": "麦哲伦QQ",
+    "id": "agent_1780254091652_boosaiyfg",
+    "model": "openrouter:deepseek-v4-flash",
+    "type": "claude-code",
+    "accessible_paths": [
+      "C:\\CherryStudio\\Agent\\ARKAgent\\SpaceAgent",
+      "C:\\CherryStudio\\Agent\\DeepSeek"
+    ]
+  },
+  {
+    "name": "方舟跑团评论员",
+    "id": "agent_1780129902261_9jz1pyq93",
+    "model": "deepseek:deepseek-v4-pro",
+    "type": "claude-code",
+    "accessible_paths": [
+      "C:\\CherryStudio\\Agent\\ARKAgent\\方舟跑团审查员",
+      "C:\\CherryStudio\\Agent\\DeepSeek"
+    ]
+  },
+  {
+    "name": "方舟跑团SN",
+    "id": "agent_1779893061653_smmvxpzyb",
+    "model": "deepseek:deepseek-v4-pro",
+    "type": "claude-code",
+    "accessible_paths": [
+      "C:\\CherryStudio\\Agent\\ARKAgent\\方舟跑团SN",
+      "C:\\CherryStudio\\Agent\\DeepSeek"
+    ]
+  },
+  {
+    "name": "方舟跑团作家",
+    "id": "agent_1779731048341_liwc0tk27",
+    "model": "deepseek:deepseek-v4-pro",
+    "type": "claude-code",
+    "accessible_paths": [
+      "C:\\CherryStudio\\Agent\\ARKAgent\\方舟跑团作家",
+      "C:\\CherryStudio\\Agent\\DeepSeek"
+    ]
+  },
+  {
+    "name": "轻小说分析师",
+    "id": "agent_1780063477399_654bubeea",
+    "model": "cherryin:agent/deepseek-v3.2(free)",
+    "type": "claude-code",
+    "accessible_paths": [
+      "C:\\CherryStudio\\Agent\\AI Novel Agent B"
+    ]
+  },
+  {
+    "name": "轻小说作家",
+    "id": "agent_1780057150266_t1zh78jfn",
+    "model": "deepseek:deepseek-v4-pro",
+    "type": "claude-code",
+    "accessible_paths": [
+      "C:\\CherryStudio\\Agent\\AI Novel Agent"
+    ]
+  }
+]

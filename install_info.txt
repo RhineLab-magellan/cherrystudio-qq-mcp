@@ -1,0 +1,30 @@
+============================================================
+  JSON config (for manual setup)
+============================================================
+{
+  "mcpServers": {
+    "qq-bridge": {
+      "name": "QQ Bridge",
+      "type": "stdio",
+      "command": "C:/Users/magellan/Desktop/助手/.venv/Scripts/python.exe",
+      "args": [
+        "C:/Users/magellan/Desktop/助手/qq_mcp_bridge/server.py"
+      ],
+      "env": {},
+      "description": "QQ Bridge - send/receive QQ private and group messages"
+    }
+  }
+}
+
+============================================================
+  One-click Install URL (paste in browser)
+============================================================
+cherrystudio://mcp/install?servers=eyJtY3BTZXJ2ZXJzIjogeyJxcS1icmlkZ2UiOiB7Im5hbWUiOiAiUVEgQnJpZGdlIiwgInR5cGUiOiAic3RkaW8iLCAiY29tbWFuZCI6ICJDOi9Vc2Vycy9tYWdlbGxhbi9EZXNrdG9wL1x1NTJhOVx1NjI0Yi8udmVudi9TY3JpcHRzL3B5dGhvbi5leGUiLCAiYXJncyI6IFsiQzovVXNlcnMvbWFnZWxsYW4vRGVza3RvcC9cdTUyYTlcdTYyNGIvcXFfbWNwX2JyaWRnZS9zZXJ2ZXIucHkiXSwgImVudiI6IHt9LCAiZGVzY3JpcHRpb24iOiAiUVEgQnJpZGdlIC0gc2VuZC9yZWNlaXZlIFFRIHByaXZhdGUgYW5kIGdyb3VwIG1lc3NhZ2VzIn19fQ==
+
+============================================================
+  Usage
+============================================================
+  1. Copy the cherrystudio:// URL above into your browser address bar
+  2. CherryStudio will auto-open and install the MCP server
+  3. Go to Settings -> MCP Server -> enable 'QQ Bridge'
+  4. In chat, click the MCP button to activate tools
