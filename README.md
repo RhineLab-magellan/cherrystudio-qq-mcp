@@ -29,6 +29,31 @@
 ---
 
 ## 安装方式
+### 方式零：CherryStudio Agent 安装：
+
+```txt```
+安装并注册MCP：
+https://github.com/RhineLab-magellan/cherrystudio-qq-mcp
+自动完成：
+- 克隆仓库
+- 安装依赖
+- 创建 Configuration/config.json
+- 自动读取 NapCat 配置中的 ws_host、ws_port、access_token
+- 如检测到 NapCat 正在运行，则测试 get_login_info WebSocket 连接
+- 生成 CherryStudio stdio MCP 配置
+- 生成 cherrystudio://mcp/install?servers=<base64>
+最后汇报：
+- 安装目录
+- Python 路径
+- server.py 路径
+- NapCat 测试结果（如已执行）
+- MCP 安装链接
+- 需要用户补充的配置项
+不要询问用户已可自动发现的信息。
+遇到错误先尝试自动修复。
+如未检测到 NapCat 或其配置文件，则跳过连接测试并继续安装流程。
+```
+
 
 ### 方式一：UVX（推荐）
 
