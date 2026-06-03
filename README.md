@@ -31,7 +31,7 @@
 ## 安装方式
 ### 方式零：CherryStudio Agent 安装：
 
-```txt```
+```txt
 安装并注册MCP：
 https://github.com/RhineLab-magellan/cherrystudio-qq-mcp
 自动完成：
