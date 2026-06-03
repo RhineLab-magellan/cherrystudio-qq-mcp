@@ -33,9 +33,9 @@ dependencies = [
 qq-mcp-bridge = "server:main_sync"
 
 [project.urls]
-Homepage = "https://github.com/RhineLab-magellan/qq_mcp_bridge"
-Repository = "https://github.com/RhineLab-magellan/qq_mcp_bridge"
-Issues = "https://github.com/RhineLab-magellan/qq_mcp_bridge/issues"
+Homepage = "https://github.com/RhineLab-magellan/cherrystudio-qq-mcp"
+Repository = "https://github.com/RhineLab-magellan/cherrystudio-qq-mcp"
+Issues = "https://github.com/RhineLab-magellan/cherrystudio-qq-mcp/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["."]

@@ -76,7 +76,7 @@ CherryStudio MCP 配置：
 ### 方式三：手动安装
 
 ```bash
-git clone https://github.com/RhineLab-magellan/qq_mcp_bridge.git
+git clone https://github.com/RhineLab-magellan/cherrystudio-qq-mcp.git
 cd qq_mcp_bridge
 pip install -r requirements.txt
 cp config.example.json Configuration/config.json
