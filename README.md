@@ -24,6 +24,7 @@
 1. **[NapCatQQ](https://github.com/NapNeko/NapCatQQ)** — QQ 机器人框架，需安装并登录
 2. **[CherryStudio](https://cherrystudio.ai/)** — MCP 客户端
 3. **Python >= 3.10**
+4. **[uv](https://docs.astral.sh/uv/)** — Python 包管理器（仅 UVX 方式需要）
 
 ---
 

@@ -1,17 +1,15 @@
 """Generate CherryStudio MCP one-click install URL.
 
-Supports three installation modes:
+Supports two installation modes:
   manual : Python path + server.py (legacy)
-  npx    : NPX-based install
-  uvx    : UVX-based install
+  uvx    : UVX-based install (git direct)
 
 Usage:
   python generate_install_url.py [mode]
 
 Modes:
   manual (default)  Generate a cherrystudio:// URL using the current Python interpreter
-  npx               Generate a cherrystudio:// URL using npx
-  uvx               Generate a cherrystudio:// URL using uvx
+  uvx               Generate a cherrystudio:// URL using uvx --from git
 """
 import json
 import base64
@@ -21,20 +19,7 @@ import os
 MODE = sys.argv[1] if len(sys.argv) > 1 else "manual"
 
 def build_config(mode: str) -> dict:
-    if mode == "npx":
-        return {
-            "mcpServers": {
-                "qq-bridge": {
-                    "name": "QQ Bridge",
-                    "type": "stdio",
-                    "command": "npx",
-                    "args": ["-y", "qq-mcp-bridge"],
-                    "env": {},
-                    "description": "QQ Bridge - send/receive QQ private and group messages via NapCat",
-                }
-            }
-        }
-    elif mode == "uvx":
+    if mode == "uvx":
         return {
             "mcpServers": {
                 "qq-bridge": {
