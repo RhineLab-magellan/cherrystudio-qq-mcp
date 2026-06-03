@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 # === PID 文件锁：防止重复启动 ===
-PID_FILE = Path(__file__).parent / "bridge.pid"
+PID_FILE = Path(__file__).parent / "Configuration" / "bridge.pid"
 
 def _check_singleton():
     """检查是否已有实例运行，若无则写入 PID 文件"""
@@ -30,6 +30,7 @@ def _check_singleton():
                     return False
         except (ValueError, OSError):
             pass
+    PID_FILE.parent.mkdir(parents=True, exist_ok=True)
     PID_FILE.write_text(str(os.getpid()))
     return True
 
@@ -37,7 +38,7 @@ if not _check_singleton():
     sys.exit(0)
 
 # 先读配置
-CONFIG_PATH = Path(__file__).parent / "config.json"
+CONFIG_PATH = Path(__file__).parent / "Configuration" / "config.json"
 CONFIG = json.loads(CONFIG_PATH.read_text(encoding="utf-8")) if CONFIG_PATH.exists() else {}
 DEBUG_MODE = CONFIG.get("debug_mode", 0)
 LOG_LEVEL = CONFIG.get("log_level", "INFO").upper()
@@ -87,8 +88,8 @@ logging.getLogger("mcp.server.lowlevel.server").setLevel(logging.WARNING)
 NAPCAT_CFG: dict = CONFIG.get("napcat", {})
 BRIDGE_CFG: dict = CONFIG.get("bridge", {})
 
-from napcat_client import MessageBuffer, NapCatClient, QQMessage
-from auto_reply import AutoReply
+from Built_in.napcat_client import MessageBuffer, NapCatClient, QQMessage
+from Built_in.auto_reply import AutoReply
 
 # 统一客户端 (WebSocket 双向: 事件接收 + API 调用)
 client: NapCatClient
@@ -96,36 +97,28 @@ buffer: MessageBuffer = MessageBuffer(BRIDGE_CFG.get("message_buffer_size", 200)
 auto_reply: AutoReply | None = None
 
 
-def _parse_index_input(text: str, max_count: int) -> list[int]:
-    """解析用户输入的编号字符串，如 '0,1,3' 或 '0-3' 或 '0 2 4'，返回排序去重的索引列表。"""
-    import re
-    text = text.strip().replace("，", ",")
-    indices: set[int] = set()
-    for part in re.split(r"[\s,]+", text):
-        part = part.strip()
-        if not part:
-            continue
-        if "-" in part:
-            try:
-                a, b = part.split("-", 1)
-                for i in range(int(a), int(b) + 1):
-                    if 0 <= i < max_count:
-                        indices.add(i)
-            except ValueError:
-                pass
-        else:
-            try:
-                i = int(part)
-                if 0 <= i < max_count:
-                    indices.add(i)
-            except ValueError:
-                pass
-    return sorted(indices)
-
-
 async def init_napcat():
     """后台连接 NapCat (不阻塞 MCP)"""
     global client, auto_reply
+
+    # 检测 BotSettingConfig.json
+    setting_path = Path(__file__).parent / "Configuration" / "BotSettingConfig.json"
+    if not setting_path.exists():
+        setting_path.parent.mkdir(parents=True, exist_ok=True)
+        defaults = {
+            "内置模块": {
+                "custom_greeting": "欢迎消息的自定义前缀，留空则仅显示版本和命令列表"
+            },
+            "指令模块": {
+                "bot_on_message": ".bot on 时发送的消息，留空使用默认文案",
+                "bot_off_message": ".bot off 时发送的消息，留空使用默认文案",
+                "dismiss_message": "退群时发送的告别消息，留空不发送"
+            }
+        }
+        setting_path.write_text(json.dumps(defaults, ensure_ascii=False, indent=2), encoding="utf-8")
+        logger.warning("检测到Bot设定文件丢失-已经重建")
+        if SHOW_CONSOLE:
+            print("\n[!] 检测到Bot设定文件丢失-已经重建 BotSettingConfig.json")
 
     ws_host = NAPCAT_CFG.get("ws_host", "127.0.0.1")
     ws_port = NAPCAT_CFG.get("ws_port", 3001)
@@ -215,48 +208,9 @@ async def init_napcat():
             mineru_max_file_size_mb=CONFIG.get("file_processing", {}).get("max_file_size_mb", 10),
             mineru_summary_max_chars=CONFIG.get("file_processing", {}).get("summary_max_chars", 2000),
         )
-        # 自动拉取 Agent：手动配置为空时，从 CherryStudio 拉取
+        # 自动拉取 Agent：手动配置为空时，从 CherryStudio 拉取全部
         if not agents:
-            if agent_whitelist:
-                logger.info(f"Agent 白名单: {len(agent_whitelist)} 个，正在从 CherryStudio 拉取...")
             agents = await auto_reply._fetch_agents_from_cherrystudio(agent_whitelist if agent_whitelist else None)
-
-            # 白名单为空 + 控制台开启 → 交互式选择
-            if not agent_whitelist and agents and SHOW_CONSOLE:
-                agent_list = [(name, cfg["agent_id"]) for name, cfg in agents.items()]
-
-                print("\n" + "=" * 55)
-                print("  Agent 白名单配置")
-                print("=" * 55)
-                print("检测到 agent_whitelist 为空，已加载所有 Agent。")
-                print("请输入允许的 Agent 的编号：\n")
-                for i, (name, aid) in enumerate(agent_list):
-                    marker = " <- 当前默认" if name == default_agent else ""
-                    print(f"  {i}: {name} -> {aid}{marker}")
-                print("\n提示：之后可在 config.json 的 agent_whitelist 中手动增删。")
-                print("请输入编号（如 0,1,3 或 0-3），直接回车全部启用：")
-
-                try:
-                    if sys.platform == "win32":
-                        line = open("CONIN$", "r").readline().strip()
-                    else:
-                        line = sys.stdin.readline().strip()
-                except Exception:
-                    line = ""
-
-                if line:
-                    selected = _parse_index_input(line, len(agent_list))
-                    if selected:
-                        new_whitelist = [agent_list[i][1] for i in selected]
-                        agents = {name: cfg for name, cfg in agents.items() if cfg["agent_id"] in new_whitelist}
-                        CONFIG["agent_whitelist"] = new_whitelist
-                        CONFIG_PATH.write_text(json.dumps(CONFIG, ensure_ascii=False, indent=4), encoding="utf-8")
-                        logger.info(f"已更新 agent_whitelist ({len(new_whitelist)} 个) 并写入 config.json")
-                        print(f"\n[OK] 已保存 {len(new_whitelist)} 个 Agent 到白名单。")
-                    else:
-                        print("\n[!] 输入无效，将加载全部 Agent（未写入白名单）。")
-                else:
-                    print("\n[-] 已跳过，将加载全部 Agent（未写入白名单）。")
 
             if agents:
                 auto_reply._agents = agents
@@ -285,7 +239,41 @@ async def init_napcat():
         else:
             logger.warning("auto_reply 未初始化!")
 
+    async def on_notice(data: dict):
+        notice_type = data.get("notice_type", "")
+        if notice_type == "group_increase":
+            group_id = str(data.get("group_id", ""))
+            logger.info(f"检测到加入群聊: {group_id}")
+            if auto_reply:
+                greeting = auto_reply.build_greeting()
+                asyncio.create_task(_safe_send(client, "group", group_id, greeting))
+        elif notice_type == "friend_add":
+            user_id = str(data.get("user_id", ""))
+            logger.info(f"检测到新好友: {user_id}")
+            if auto_reply:
+                greeting = auto_reply.build_greeting()
+                asyncio.create_task(_safe_send(client, "private", user_id, greeting))
+
+    async def _safe_send(nc, msg_type, target, text):
+        try:
+            await nc.send_msg(msg_type, target, text)
+        except Exception as e:
+            logger.warning(f"发送欢迎消息失败 [{msg_type}:{target}]: {e}")
+
     client.set_message_handler(on_msg)
+    client.set_notice_handler(on_notice)
+
+    async def on_request(data: dict):
+        req_type = data.get("request_type", "")
+        flag = data.get("flag", "")
+        if req_type == "friend" and CONFIG.get("auto_accept_friend", True):
+            await client.approve_friend_request(flag)
+            logger.info(f"自动同意好友申请: {data.get('user_id')}")
+        elif req_type == "group" and CONFIG.get("auto_accept_group", True):
+            await client.approve_group_invite(flag)
+            logger.info(f"自动同意群邀请: {data.get('group_id')}")
+
+    client.set_request_handler(on_request)
 
     # 启动 WS (后台)
     asyncio.create_task(client.start())
@@ -549,6 +537,11 @@ async def main():
             PID_FILE.unlink(missing_ok=True)
         except Exception:
             pass
+
+
+def main_sync():
+    """Synchronous entry point for pyproject.toml [project.scripts] (NPX/UVX)."""
+    asyncio.run(main())
 
 
 if __name__ == "__main__":

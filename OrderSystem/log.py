@@ -8,7 +8,7 @@ from datetime import datetime
 from pathlib import Path
 
 from .base import Command, CommandContext
-from napcat_client import QQMessage
+from Built_in.napcat_client import QQMessage
 
 PLAYER_LOG = Path(__file__).parent.parent / "PlayerLog"
 
@@ -47,7 +47,7 @@ def _list_log_names(group_id: str) -> list[str]:
 
 class LogCommand(Command):
     name = "log"
-    description = "群聊日志 (new/on/off/end/list/get/del)"
+    description = "日志"
 
     async def handle(self, args: str, msg: QQMessage, ctx: CommandContext) -> str | None:
         ar = ctx.auto_reply

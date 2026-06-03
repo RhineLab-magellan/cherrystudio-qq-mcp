@@ -20,7 +20,7 @@ from pathlib import Path
 
 logger = logging.getLogger("conv-store")
 
-BASE_DIR = Path(__file__).parent / "QQConversationRecord"
+BASE_DIR = Path(__file__).parent.parent / "QQConversationRecord"
 MAPPING_FILE = BASE_DIR / "mapping.json"
 INACTIVE_DAYS = 3
 

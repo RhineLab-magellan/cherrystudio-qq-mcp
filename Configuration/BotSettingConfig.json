@@ -1,0 +1,10 @@
+{
+  "内置模块": {
+    "custom_greeting": "欢迎消息的自定义前缀，留空则仅显示版本和命令列表"
+  },
+  "指令模块": {
+    "bot_on_message": ".bot on 时发送的消息，留空使用默认文案",
+    "bot_off_message": ".bot off 时发送的消息，留空使用默认文案",
+    "dismiss_message": "退群时发送的告别消息，留空不发送"
+  }
+}

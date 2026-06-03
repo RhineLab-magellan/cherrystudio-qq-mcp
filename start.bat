@@ -5,5 +5,5 @@ echo ============================
 echo   QQ-MCP Bridge Server
 echo ============================
 echo.
-""C:\Users\RHineLAB\AppData\Local\Python\pythoncore-3.14-64\python.exe"" server.py
+python server.py
 pause

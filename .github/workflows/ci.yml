@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  check-secrets:
+    name: Check for sensitive data leaks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan for API keys and tokens
+        run: |
+          echo "=== Scanning for hardcoded secrets ==="
+          # Common API key patterns
+          PATTERNS=(
+            'sk-[A-Za-z0-9]{20,}'
+            'cs-sk-[A-Za-z0-9]{20,}'
+            'zg4ov[A-Za-z0-9]{10,}'
+            'access_token.*[A-Za-z0-9]{10,}'
+          )
+          FOUND=0
+          for pattern in "${PATTERNS[@]}"; do
+            if grep -rPn --include="*.py" --include="*.json" --include="*.txt" "$pattern" . 2>/dev/null; then
+              echo "::error::Found potential secret matching: $pattern"
+              FOUND=1
+            fi
+          done
+          if [ $FOUND -eq 1 ]; then
+            echo "::error::Sensitive data detected! Please remove before publishing."
+            exit 1
+          fi
+          echo "✅ No secrets found."
+
+  python-check:
+    name: Python syntax check
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Check syntax
+        run: |
+          for f in $(find . -name "*.py" -not -path "./.git/*"); do
+            python -m py_compile "$f" && echo "✅ $f"
+          done

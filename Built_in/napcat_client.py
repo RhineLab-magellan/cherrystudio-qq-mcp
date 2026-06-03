@@ -70,6 +70,7 @@ class NapCatClient:
         self._pending: dict[str, asyncio.Future] = {}  # echo -> future
         self._on_message: Callable | None = None
         self._on_notice: Callable | None = None
+        self._on_request: Callable | None = None
         self._ready = asyncio.Event()
         self._connected = False
 
@@ -82,6 +83,9 @@ class NapCatClient:
 
     def set_notice_handler(self, handler: Callable):
         self._on_notice = handler
+
+    def set_request_handler(self, handler: Callable):
+        self._on_request = handler
 
     async def start(self):
         self._running = True
@@ -151,7 +155,7 @@ class NapCatClient:
             if result.get("status") == "failed":
                 raise RuntimeError(f"API 调用失败 [{action}]: {result.get('message', result)}")
             return result.get("data", result)
-        except asyncio.TimeoutError:
+        except (asyncio.TimeoutError, TimeoutError):
             raise TimeoutError(f"API 调用超时 [{action}] ({timeout}s)")
         finally:
             self._pending.pop(echo, None)
@@ -261,6 +265,17 @@ class NapCatClient:
     async def get_login_info(self) -> dict:
         return await self._call("get_login_info")
 
+    # --- 退群 ---
+    async def leave_group(self, group_id: str):
+        await self._call("set_group_leave", {"group_id": str(group_id)})
+
+    # --- 审批 ---
+    async def approve_friend_request(self, flag: str):
+        await self._call("set_friend_add_request", {"flag": flag, "approve": True})
+
+    async def approve_group_invite(self, flag: str):
+        await self._call("set_group_add_request", {"flag": flag, "sub_type": "invite", "approve": True})
+
     # --- 最近联系人 ---
     async def get_recent_contact(self, count: int = 20) -> list[dict]:
         return await self._call("get_recent_contact", {"count": count})
@@ -319,6 +334,9 @@ class NapCatClient:
         elif post_type == "notice":
             if self._on_notice:
                 await self._on_notice(data)
+        elif post_type == "request":
+            if self._on_request:
+                await self._on_request(data)
 
     @staticmethod
     def _extract_text(message: list | str) -> str:

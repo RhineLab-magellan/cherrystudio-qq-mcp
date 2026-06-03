@@ -1,12 +1,12 @@
 """.order — 会话与 Agent 管理"""
 
 from .base import Command, CommandContext
-from napcat_client import QQMessage
+from Built_in.napcat_client import QQMessage
 
 
 class OrderCommand(Command):
     name = "order"
-    description = "会话/Agent 管理 (切换/列表/重建/status/help)"
+    description = "会话/Agent 管理"
 
     async def handle(self, args: str, msg: QQMessage, ctx: CommandContext) -> str | None:
         ar = ctx.auto_reply
@@ -24,7 +24,7 @@ class OrderCommand(Command):
         elif action in ("重建", "reset", "重建会话"):
             return await ar.order_rebuild_session(msg_type, target)
         elif action in ("status", "状态"):
-            return ar.order_status(msg_type, target)
+            return await ar.order_status(msg_type, target)
 
         elif action in ("help", "帮助", "?"):
             return self._sub_help()

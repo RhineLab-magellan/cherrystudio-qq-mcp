@@ -1,17 +1,20 @@
 """.model — 模型管理（从 .order master 中拆出）"""
 
 from .base import Command, CommandContext
-from napcat_client import QQMessage
+from Built_in.napcat_client import QQMessage
 
 
 class ModelCommand(Command):
     name = "model"
-    description = "模型管理 (list/change/status)"
+    description = "模型管理"
 
     async def handle(self, args: str, msg: QQMessage, ctx: CommandContext) -> str | None:
         ar = ctx.auto_reply
         target = msg.group_id if msg.message_type == "group" else msg.sender_id
         msg_type = msg.message_type
+
+        if not ar.check_admin(msg.sender_id):
+            return "⛔ 权限不足。.model 指令仅限管理员使用。"
 
         parts = args.split(None, 1)
         action = parts[0] if parts else ""

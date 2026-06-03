@@ -2,8 +2,10 @@
     "debug_mode": 1,
     "log_level": "INFO",
     "show_console": true,
-    "admin_qq": "你的QQ号",
-    "global_context": "【QQ 回复规则 - 必须严格遵守】\n你的每一段输出都会直接作为 QQ 消息发送到群聊或私聊...",
+    "admin_qq": "你的管理员QQ号",
+    "auto_accept_friend": true,
+    "auto_accept_group": true,
+    "global_context": "【QQ 回复规则 - 必须严格遵守】\n你的每一段输出都会直接作为 QQ 消息发送到群聊或私聊。你不在 CherryStudio 界面里，你没有\"发送后\"的回顾环节。\n\n严禁事项：\n1. 严禁向QQ透漏任何敏感信息:如工作路径，使用的Key，系统信息。\n2. 严禁出现\"消息已发送\"\"已经发送\"等自我描述\n3. 严禁总结你刚才做了什么\n4. 严禁出现\"让我先看看\"等内心独白\n5. 严禁在末尾追加回顾性、评价性文字\n6. 严禁提及\"上一个会话\"\"历史记录\"\n\n核心原则：你是在QQ群里和群友聊天，不是在向管理员提交报告。",
     "napcat": {
         "ws_host": "127.0.0.1",
         "ws_port": 3001,
@@ -13,18 +15,19 @@
         "message_buffer_size": 200
     },
     "cherry_api_key": "你的CherryStudio API密钥",
+    "mcp_server_name": "QQ Bridge",
     "llm": [
         {
             "name": "OpenCode",
-            "api_url": "https://opencode.ai/zen/go/v1/chat/completions",
-            "api_key": "你的API密钥",
+            "api_url": "你的LLM端口",
+            "api_key": "你的LLM API密钥",
             "api_format": "openai",
             "models": ["minimax-m2.5", "minimax-m2.7"]
         },
         {
             "name": "DeepSeek",
-            "api_url": "https://api.deepseek.com/v1/chat/completions",
-            "api_key": "你的API密钥",
+            "api_url": "你的LLM端口",
+            "api_key": "你的LLM API密钥",
             "api_format": "openai",
             "models": ["deepseek-v4-flash", "deepseek-v4-pro"]
         }
@@ -36,10 +39,17 @@
     "vision_providers": [
         {
             "name": "OpenCode",
-            "api_url": "https://opencode.ai/zen/go/v1/chat/completions",
-            "api_key": "你的API密钥",
+            "api_url": "你的LLM端口",
+            "api_key": "你的Vision API密钥",
             "api_format": "openai",
             "models": ["qwen3.5-plus"]
+        },
+        {
+            "name": "Qwen",
+            "api_url": "你的LLM端口",
+            "api_key": "你的Vision API密钥",
+            "api_format": "openai",
+            "models": ["qwen3-vl-plus"]
         }
     ],
     "default_vision": {
@@ -50,11 +60,26 @@
     "agent_timeout_seconds": 60,
     "agent_whitelist": [],
     "agents": {},
-    "default_agent": "麦哲伦QQ",
+    "default_agent": "你的Agent名称",
     "auto_reply": {
         "enabled": true,
         "reply_to_groups": [],
         "reply_to_friends": [],
-        "reply_mode": "mention"
+        "reply_mode": "mention",
+        "cooldown_seconds": 3,
+        "max_context_messages": 20,
+        "message_split_threshold": 5.0,
+        "reply_chain_depth": 4,
+        "doc_threshold": 1500
+    },
+    "vision": {
+        "enabled": true,
+        "prompt": "Describe all image attachments in this message.\n\nIf there is one image, describe it directly.\nIf there are multiple images:\n1. Describe each image separately, preserving their order.\n2. Then provide a combined description explaining the overall context and relationships across the images.\n\nReturn one concise factual description suitable for inserting into a text-only chat prompt. Include visible text, objects, UI elements, people, and relevant context. Do not invent details."
+    },
+    "file_processing": {
+        "enabled": true,
+        "mineru_command": "mineru-open-api",
+        "max_file_size_mb": 10,
+        "summary_max_chars": 1500
     }
 }

@@ -1,12 +1,13 @@
 """.bot — 群组指令模式开关"""
 
 from .base import Command, CommandContext
-from napcat_client import QQMessage
+from Built_in.napcat_client import QQMessage
 
 
 class BotCommand(Command):
     name = "bot"
-    description = "群组指令模式 (on=正常回复 / off=仅响应指令)"
+    description = "开关相应"
+    reminder = "使用 .bot on/off 开关机器人；\n使用.bot orderwhite 关闭Only @ 响应"
 
     async def handle(self, args: str, msg: QQMessage, ctx: CommandContext) -> str | None:
         ar = ctx.auto_reply
@@ -14,7 +15,9 @@ class BotCommand(Command):
         msg_type = msg.message_type
 
         action = args.strip().lower()
-        if action in ("on",):
+        if not action:
+            return ar.build_greeting()
+        elif action in ("on",):
             return ar.bot_set(msg_type, target, True)
         elif action in ("off",):
             return ar.bot_set(msg_type, target, False)

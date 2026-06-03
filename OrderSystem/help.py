@@ -2,7 +2,7 @@
 
 from .base import Command, CommandContext
 from . import list_commands
-from napcat_client import QQMessage
+from Built_in.napcat_client import QQMessage
 
 
 class HelpCommand(Command):
