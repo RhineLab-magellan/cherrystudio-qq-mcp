@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "qq-mcp-bridge"
+name = "cherrystudio-qq-mcp"
 version = "1.0.0"
 description = "QQ MCP Bridge: Connect CherryStudio with QQ via NapCatQQ for multi-agent AI chat"
 readme = "README.md"
@@ -30,7 +30,7 @@ dependencies = [
 ]
 
 [project.scripts]
-qq-mcp-bridge = "server:main_sync"
+cherrystudio-qq-mcp = "server:main_sync"
 
 [project.urls]
 Homepage = "https://github.com/RhineLab-magellan/cherrystudio-qq-mcp"

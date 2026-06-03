@@ -29,29 +29,7 @@
 
 ## 安装方式
 
-### 方式一：NPX（推荐）
-
-```bash
-python Built_in/generate_install_url.py npx
-```
-
-CherryStudio MCP 配置：
-
-```json
-{
-  "mcpServers": {
-    "qq-bridge": {
-      "name": "QQ Bridge",
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "qq-mcp-bridge"],
-      "env": {}
-    }
-  }
-}
-```
-
-### 方式二：UVX
+### 方式一：UVX（推荐）
 
 ```bash
 python Built_in/generate_install_url.py uvx
@@ -66,18 +44,18 @@ CherryStudio MCP 配置：
       "name": "QQ Bridge",
       "type": "stdio",
       "command": "uvx",
-      "args": ["qq-mcp-bridge"],
+      "args": ["--from", "git+https://github.com/RhineLab-magellan/cherrystudio-qq-mcp.git", "cherrystudio-qq-mcp"],
       "env": {}
     }
   }
 }
 ```
 
-### 方式三：手动安装
+### 方式二：手动安装
 
 ```bash
 git clone https://github.com/RhineLab-magellan/cherrystudio-qq-mcp.git
-cd qq_mcp_bridge
+cd cherrystudio-qq-mcp
 pip install -r requirements.txt
 cp config.example.json Configuration/config.json
 # 编辑 Configuration/config.json 填入你的配置
@@ -248,7 +226,6 @@ python server.py
 qq_mcp_bridge/
 ├── server.py                   # 唯一入口
 ├── pyproject.toml              # Python 包定义
-├── package.json                # NPX 安装配置
 ├── start.bat                   # Windows 启动脚本
 ├── Built_in/                   # 核心模块
 │   ├── auto_reply.py           # 自动回复引擎

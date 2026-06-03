@@ -41,7 +41,7 @@ def build_config(mode: str) -> dict:
                     "name": "QQ Bridge",
                     "type": "stdio",
                     "command": "uvx",
-                    "args": ["qq-mcp-bridge"],
+                    "args": ["--from", "git+https://github.com/RhineLab-magellan/cherrystudio-qq-mcp.git", "cherrystudio-qq-mcp"],
                     "env": {},
                     "description": "QQ Bridge - send/receive QQ private and group messages via NapCat",
                 }
