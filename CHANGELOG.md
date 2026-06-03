@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file.
 - File processing support via MinerU
 - Session persistence with `QQConversationRecord/`
 - Group chat logging with `PlayerLog/`
-- NPX and UVX installation support
+- UVX installation support (via `--from git`)
 - One-click CherryStudio MCP install URL generator
 - Auto-accept friend/group invites
 - Configurable greeting, on/off, and dismiss messages
