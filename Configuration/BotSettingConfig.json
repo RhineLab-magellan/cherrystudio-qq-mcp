@@ -1,10 +1,38 @@
 {
   "内置模块": {
-    "custom_greeting": "欢迎消息的自定义前缀，留空则仅显示版本和命令列表"
+    "custom_greeting": "[追逐地平线的人]-莱茵生命科学考察科外勤专员！薇恩塔·麦哲伦，随时准备出发前往任何地方！\n[总有些地方值得出发，总有些梦想值得抵达。]"
   },
-  "指令模块": {
-    "bot_on_message": ".bot on 时发送的消息，留空使用默认文案",
-    "bot_off_message": ".bot off 时发送的消息，留空使用默认文案",
-    "dismiss_message": "退群时发送的告别消息，留空不发送"
+  "arktrpg": {
+    "ark_message": "愿你成为你想要的自己 \n<>进行了{}",
+    "rk_message": "<>一起来开始紧张刺激的ARK鉴定吧{}",
+    "rkb_message": "让我看看，哇，<>的巧克力，那好吧，奖励启动！{}",
+    "rkp_message": "<>老师，我会尽量悠着点的……\n{}",
+    "sck_message": "{}",
+    "sn_rk_message": "{}"
+  },
+  "dice_core": {
+    "r_message": "让我看看你的祈愿吧。\n{}",
+    "ra_message": "命运的齿轮-转动吧！\n{}",
+    "del_card_message": "{}",
+    "nn_message": "你想我换个方式叫你，好呀{}",
+    "show_message": "想看看谁在冒险吗？\n{}",
+    "st_message": " <> 角色卡已经设置好了~~~欢迎加入~~~"
+  },
+  "BuiltInOrder": {
+    "bot_on_message": "新的一天开始啦~~~~博士想去哪里玩呢~~和我一起去冒险？真的吗！",
+    "bot_off_message": "是时候睡觉啦~~~晚安博士",
+    "bot_orderwhite_message": "{}",
+    "dismiss_message": "要分道扬镳了吗？是更重要的研究吗？小企鹅会记得你的，希望您前程似锦，未来的旅途充满精彩！"
+  },
+  "ob": {
+    "ob_join_message": "<>进入OB状态！Log大人看不到你的消息了啦~~\n{}",
+    "ob_list_message": "想要看看谁在潜水吗？好吧~~~\n{}"
+  },
+  "log": {
+    "log_new_message": "新的日志,新的冒险,新的未来！\n{}",
+    "log_list_message": "让我们看看都有些什么？\n{}"
+  },
+  "notification": {
+    "receipt_message": "<>，正在处理你的问题，请稍等~"
   }
 }

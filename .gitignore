@@ -1,49 +1,67 @@
-﻿# 敏感配置文件（包含 API 密钥）
+# ── 敏感配置文件（包含 API 密钥）──
 config.json
+Configuration/config.json
 
-# 运行时生成文件
-bridge.pid
-*.pid
-*.log
-install_info.txt
+# ── Python 虚拟环境 ──
+.venv/
+venv/
+env/
+ENV/
+.env
 
-# 运行时数据目录（自动生成）
-PlayerLog/
-QQConversationRecord/
-
-# Python
+# ── Python 缓存与编译产物 ──
 __pycache__/
-*.py[cod]
-*py.class
-*.so
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
 *.egg-info/
 dist/
 build/
 *.egg
+*.so
 
-# 虚拟环境
-venv/
-.venv/
-env/
-.env
-
-# IDE
+# ── IDE 与编辑器 ──
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# 操作系统
-.DS_Store
-Thumbs.db
-
-# 操作系统
-.DS_Store
-Thumbs.db
-
-# 日志
+# ── 运行时日志 ──
 *.log
+PlayerLog/
+stderr.log
+stdout.log
 
-# 聊天记录（隐私数据）
+# ── 安装日志 ──
+Install/install.log
+
+# ── 运行时 PID 文件 ──
+*.pid
+bridge.pid
+install_info.txt
+
+# ── 用户数据（QQ号码、会话记录、角色卡等）──
+data/
 QQConversationRecord/
+
+# ── 临时文件与浏览器 Profile ──
+Temp/
+
+# ── 下载的浏览器二进制文件 ──
+Browsers/
+
+# ── 运行时状态/配置文件 ──
+bot_blacklist.json
+shared_state.json
+log_blacklist.json
+order_whitelist.json
+
+# ── OS 文件 ──
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ── 其他 ──
+_nul

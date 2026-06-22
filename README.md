@@ -1,290 +1,305 @@
-﻿# QQ-MCP Bridge
+# QQ-MCP Bridge v3.0 - 重构版
 
-> CherryStudio (MCP Client, STDIO) ↔ 桥接服务器 ↔ NapCatQQ (WebSocket 双向)
+## 项目概述
 
-将 QQ 机器人接入 CherryStudio，支持多 Agent 自动回复、群聊日志、图片识别、文件处理等功能。
+QQ-MCP Bridge v3.0 是一个完全重构的模块化桥接系统，实现 CherryStudio (MCP Client) 与 QQ (通过 NapCatQQ) 之间的双向通信。
 
----
+### 核心特性
 
-## 功能特性
-
-- 🔌 **MCP STDIO 协议** — 标准 MCP Server，无缝接入 CherryStudio
-- 🤖 **多 Agent 自动回复** — 支持 CherryStudio 多 Agent 切换与群聊回复
-- 👁️ **图片识别** — 多模态 Vision 模型自动识别图片内容
-- 📄 **文件处理** — 通过 MinerU 解析处理文件
-- 💬 **12 个 MCP 工具** — 发送消息、图片、文件、获取群列表/好友、撤回等
-- 📝 **模块化命令系统** — `.help` `.bot` `.order` `.model` 等，新增命令只需添加 `.py` 文件
-- 🔄 **LLM Provider 回退链** — 多 API Key 支持，索引递增回退
-- 🔒 **单例进程锁** — 防止重复启动
+- **模块化架构**: 5个独立模块，清晰的责任边界
+- **异步任务隔离**: 按会话创建独立asyncio.Task
+- **标准化通信**: 统一的消息协议和错误码体系
+- **热重载支持**: 配置变更无需重启
+- **完善测试**: 91个单元测试全部通过
 
 ---
 
-## 前置条件
+## 架构设计
 
-1. **[NapCatQQ](https://github.com/NapNeko/NapCatQQ)** — QQ 机器人框架，需安装并登录
-2. **[CherryStudio](https://cherrystudio.ai/)** — MCP 客户端
-3. **Python >= 3.10**
-4. **[uv](https://docs.astral.sh/uv/)** — Python 包管理器（仅 UVX 方式需要）
-
----
-
-## 安装方式
-### 方式零：CherryStudio Agent 安装：
-
-```txt
-安装并注册MCP：
-https://github.com/RhineLab-magellan/cherrystudio-qq-mcp
-自动完成：
-- 克隆仓库
-- 安装依赖
-- 创建 Configuration/config.json
-- 自动读取 NapCat 配置中的 ws_host、ws_port、access_token
-- 如检测到 NapCat 正在运行，则测试 get_login_info WebSocket 连接
-- 生成 CherryStudio stdio MCP 配置
-- 生成 cherrystudio://mcp/install?servers=<base64>
-最后汇报：
-- 安装目录
-- Python 路径
-- server.py 路径
-- NapCat 测试结果（如已执行）
-- MCP 安装链接
-- 需要用户补充的配置项
-不要询问用户已可自动发现的信息。
-遇到错误先尝试自动修复。
-如未检测到 NapCat 或其配置文件，则跳过连接测试并继续安装流程。
+```
+┌──────────────┐
+│   Server     │ ← MCP注册、系统初始化、模块生命周期管理
+└──────┬───────┘
+       │
+┌──────▼───────┐
+│ NapCatBridge │ ← WebSocket连接、消息收发
+└──────┬───────┘
+       │ RawMessage
+┌──────▼───────┐
+│ MessageBus   │ ← 过滤、解析、路由
+└──┬───────┬───┘
+   │       │
+┌──▼──┐ ┌──▼──────────┐
+│Cmd  │ │CherryStudio │ ← 按会话异步任务隔离
+│Mod  │ │Module       │
+└─────┘ └─────────────┘
 ```
 
+### 模块职责
 
-### 方式一：UVX（推荐）
+| 模块 | 职责 | 文件 |
+|------|------|------|
+| **NapCatBridge** | WebSocket连接、消息收发 | `modules/napcat_bridge.py` |
+| **MessageBus** | 消息过滤、解析、路由 | `modules/message_bus.py` |
+| **CommandModule** | 命令解析与执行 | `modules/command_module.py` |
+| **CherryStudioModule** | LLM调用、会话管理 | `modules/cherrystudio_module.py` |
+| **StateManager** | 全局状态管理 | `state/manager.py` |
+
+---
+
+## 快速开始
+
+### 环境要求
+
+- Python >= 3.10
+- NapCatQQ (已登录并启用WebSocket)
+- CherryStudio (可选，用于AI功能)
+
+### 安装依赖
 
 ```bash
-python Built_in/generate_install_url.py uvx
+pip install -e .
 ```
 
-CherryStudio MCP 配置：
+或开发模式：
 
+```bash
+pip install -e ".[dev]"
+```
+
+### 配置
+
+1. 复制示例配置：
+```bash
+cp Configuration/config.example.json Configuration/config.json
+```
+
+2. 编辑 `Configuration/config.json`，填入你的配置：
 ```json
 {
-  "mcpServers": {
-    "qq-bridge": {
-      "name": "QQ Bridge",
-      "type": "stdio",
-      "command": "uvx",
-      "args": ["--from", "git+https://github.com/RhineLab-magellan/cherrystudio-qq-mcp.git", "cherrystudio-qq-mcp"],
-      "env": {}
-    }
+  "napcat": {
+    "ws_host": "127.0.0.1",
+    "ws_port": 3001,
+    "access_token": "your_token"
+  },
+  "cherrystudio": {
+    "mcp_server_path": "/path/to/mcp/server",
+    "http_api_base": "http://127.0.0.1:8080",
+    "api_key": "your_api_key"
   }
 }
 ```
 
-### 方式二：手动安装
+### 运行测试
 
 ```bash
-git clone https://github.com/RhineLab-magellan/cherrystudio-qq-mcp.git
-cd cherrystudio-qq-mcp
-pip install -r requirements.txt
-cp config.example.json Configuration/config.json
-# 编辑 Configuration/config.json 填入你的配置
-python server.py
+pytest tests/ -v
 ```
 
 ---
 
-## 配置字段说明
+## 模块标准通信协议
 
-配置文件位于 `Configuration/config.json`（首次使用需从 `config.example.json` 复制）。
+详细协议文档请查看 [docs/PROTOCOL.md](docs/PROTOCOL.md)
 
-### 基础设置
+### 消息类型
 
-| 字段 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `debug_mode` | `int` | `1` | 调试模式：`0`=关闭日志文件, `1`=开启 |
-| `log_level` | `string` | `"INFO"` | `DEBUG` / `INFO` / `WARNING` / `ERROR` |
-| `show_console` | `bool` | `true` | 是否显示独立控制台窗口 (Windows) |
-| `admin_qq` | `string` | — | **管理员 QQ 号**，用于权限控制 |
-| `auto_accept_friend` | `bool` | `true` | 是否自动同意好友申请 |
-| `auto_accept_group` | `bool` | `true` | 是否自动同意群邀请 |
-| `global_context` | `string` | `""` | 注入每次 LLM 调用的全局 System Prompt |
-| `mcp_server_name` | `string` | `"QQ Bridge"` | CherryStudio 中显示的 MCP 名称 |
+- **RawMessage**: 原始消息 (NapCat → MessageBus)
+- **ParsedMessage**: 解析后消息 (MessageBus → 模块)
+- **OutgoingMessage**: 待发送消息 (模块 → NapCat)
+- **ModuleResponse**: 模块响应 (模块 → MessageBus)
 
-### NapCat 连接
+### 错误码体系
 
-| 字段 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `napcat.ws_host` | `string` | `"127.0.0.1"` | WebSocket 地址 |
-| `napcat.ws_port` | `int` | `3001` | WebSocket 端口 |
-| `napcat.access_token` | `string` | — | NapCat 访问令牌 |
+错误码格式: `BRG-XXXX`
 
-### Bridge
-
-| 字段 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `bridge.message_buffer_size` | `int` | `200` | 消息缓存上限 |
-
-### CherryStudio
-
-| 字段 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `cherry_api_key` | `string` | — | CherryStudio API Key（拉取 Agent 列表等） |
-
-### LLM Provider（大语言模型）
-
-`llm` 为数组，多 Provider 索引递增回退。
-
-| 子字段 | 说明 |
-|------|------|
-| `name` | 显示名称 |
-| `api_url` | API 地址 (OpenAI 兼容) |
-| `api_key` | API 密钥 |
-| `api_format` | 固定为 `"openai"` |
-| `models` | 模型名称数组 |
-
-- `default_llm.provider` — 默认 Provider 索引（从 0 开始）
-- `default_llm.model` — 默认模型名
-
-### Vision Provider（视觉模型）
-
-`vision_providers` 结构与 `llm` 相同。用于图片识别。
-
-- `default_vision.provider` — 默认 Provider 索引
-- `default_vision.model` — 默认模型名
-
-### Agent
-
-| 字段 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `agent_enabled` | `bool` | `true` | 启用 Agent 模式 |
-| `agent_timeout_seconds` | `int` | `60` | API 超时（秒） |
-| `agent_whitelist` | `string[]` | `[]` | Agent ID 白名单，空=自动拉取全部 |
-| `agents` | `object` | `{}` | 手动配置的 Agent，空=自动拉取 |
-| `default_agent` | `string` | — | 默认 Agent 名称 |
-
-### 自动回复
-
-| 字段 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `auto_reply.enabled` | `bool` | `true` | 开关自动回复 |
-| `auto_reply.reply_to_groups` | `string[]` | `[]` | 限定群号，空=所有群 |
-| `auto_reply.reply_to_friends` | `string[]` | `[]` | 限定好友，空=所有 |
-| `auto_reply.reply_mode` | `string` | `"mention"` | `"mention"`=需@, `"always"`=总是回复 |
-| `auto_reply.cooldown_seconds` | `int` | `3` | 同会话最小间隔（秒） |
-| `auto_reply.max_context_messages` | `int` | `20` | 最大上下文消息数 |
-| `auto_reply.message_split_threshold` | `float` | `5.0` | 分割标记阈值（秒） |
-| `auto_reply.reply_chain_depth` | `int` | `4` | 回复链回溯深度 |
-| `auto_reply.doc_threshold` | `int` | `1500` | 文档截断字符数 |
-
-### Vision
-
-| 字段 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `vision.enabled` | `bool` | `true` | 启用图片识别 |
-| `vision.prompt` | `string` | — | 图片识别 System Prompt |
-
-### 文件处理 (MinerU)
-
-| 字段 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `file_processing.enabled` | `bool` | `true` | 启用文件处理 |
-| `file_processing.mineru_command` | `string` | `"mineru-open-api"` | MinerU 命令 |
-| `file_processing.max_file_size_mb` | `int` | `10` | 最大文件大小 (MB) |
-| `file_processing.summary_max_chars` | `int` | `1500` | 摘要最大字符数 |
-
-### Bot 设定
-
-`Configuration/BotSettingConfig.json`：
-
-| 字段 | 说明 |
-|------|------|
-| `内置模块.custom_greeting` | 入群欢迎消息前缀 |
-| `指令模块.bot_on_message` | `.bot on` 时的消息 |
-| `指令模块.bot_off_message` | `.bot off` 时的消息 |
-| `指令模块.dismiss_message` | 退群告别消息 |
+| 范围 | 模块 | 示例 |
+|------|------|------|
+| 1000-1999 | NapCat互联桥 | BRG-1001 连接失败 |
+| 2000-2999 | 消息互联桥 | BRG-2001 消息解析失败 |
+| 3000-3999 | 命令模块 | BRG-3001 未知命令 |
+| 4000-4999 | CherryStudio模块 | BRG-4001 AI服务连接失败 |
+| 5000-5999 | Server模块 | BRG-5001 启动失败 |
+| 9000-9999 | 通用错误 | BRG-9001 未知错误 |
 
 ---
 
-## MCP 工具 (12个)
+## 内置命令
 
-| 工具 | 参数 |
-|------|------|
-| `qq_send_message` | `message_type`(private/group), `target_id`, `message` |
-| `qq_send_image` | `message_type`, `target_id`, `image_url`, `summary`(可选) |
-| `qq_upload_file` | `message_type`, `target_id`, `content`, `filename`(可选) |
-| `qq_get_recent_messages` | `target`(可选), `count` |
-| `qq_get_group_msg_history` | `group_id`, `count` |
-| `qq_get_group_list` | 无 |
-| `qq_get_friend_list` | 无 |
-| `qq_get_group_members` | `group_id` |
-| `qq_get_user_info` | `user_id` |
-| `qq_get_recent_contacts` | `count` |
-| `qq_check_status` | 无 |
-| `qq_recall_message` | `message_id` |
+| 命令 | 说明 | 示例 |
+|------|------|------|
+| `.help` | 显示帮助信息 | `.help` |
+| `.bot on/off` | 开启/关闭机器人回复 | `.bot off` |
+| `.order list/add/remove` | 管理免@白名单 | `.order add 123456` |
+| `.model list/change/status` | 管理LLM模型 | `.model change gpt-4` |
+| `.ob join/exit/list` | 旁观者模式 | `.ob join` |
+| `.dismiss` | 退群 (管理员) | `.dismiss 6789` |
 
 ---
 
-## 命令系统
+## 测试覆盖
 
-以 `.` 开头自动识别为指令。新增命令在 `OrderSystem/` 下创建 `.py` 文件。
+### 测试统计
 
-| 命令 | 功能 |
-|------|------|
-| `.help` | 显示所有命令 |
-| `.bot on/off` | 开关指令模式 |
-| `.bot orderwhite` | 切换免@ |
-| `.order 切换 <名称>` | 切换 Agent |
-| `.order 列表` | Agent 列表 |
-| `.order 重建会话` | 重建会话 |
-| `.order status` | 会话状态 |
-| `.model list/change/status` | 模型管理（管理员） |
-| `.master LLMReset` | 重置主 KEY |
-| `.master AllResetAgent` | 删除所有会话（管理员） |
-| `.master OnlyResetAgent` | 仅删 API 会话（管理员） |
-| `.log new/list/get/del` | 群聊日志管理 |
-| `.log on/off/end` | 日志录制控制 |
-| `.ob join/exit/list` | 旁观模式 |
-| `.dismiss <群号>` | 退群并清理 |
-| `.send <消息>` | 发给管理员 |
+| 模块 | 测试数 | 状态 |
+|------|--------|------|
+| StateManager | 14 | ✅ 全部通过 |
+| NapCatBridge | 17 | ✅ 全部通过 |
+| MessageBus | 19 | ✅ 全部通过 |
+| CommandModule | 23 | ✅ 全部通过 |
+| CherryStudioModule | 18 | ✅ 全部通过 |
+| **总计** | **91** | **✅ 100%通过** |
+
+### 运行测试
+
+```bash
+# 运行所有测试
+pytest tests/ -v
+
+# 运行特定模块测试
+pytest tests/test_state_manager.py -v
+pytest tests/test_napcat_bridge.py -v
+pytest tests/test_message_bus.py -v
+pytest tests/test_command_module.py -v
+pytest tests/test_cherrystudio_module.py -v
+
+# 生成覆盖率报告
+pytest tests/ --cov=. --cov-report=html
+```
 
 ---
 
-## 目录结构
+## 项目结构
 
 ```
-qq_mcp_bridge/
-├── server.py                   # 唯一入口
-├── pyproject.toml              # Python 包定义
-├── start.bat                   # Windows 启动脚本
-├── Built_in/                   # 核心模块
-│   ├── auto_reply.py           # 自动回复引擎
-│   ├── napcat_client.py        # NapCat WS 客户端
-│   ├── conversation_store.py   # 会话持久化
-│   └── generate_install_url.py # 一键安装 URL 生成器
+NEW QQ-MCP-Bridge/
+├── modules/                    # 核心模块
+│   ├── __init__.py
+│   ├── napcat_bridge.py       # NapCat互联桥
+│   ├── message_bus.py         # 消息互联桥
+│   ├── command_module.py      # 命令模块
+│   ├── cherrystudio_module.py # CherryStudio模块
+│   └── commands/              # 内置命令
+│       ├── __init__.py
+│       └── builtin.py         # 内置命令实现
+├── protocols/                  # 协议定义
+│   ├── __init__.py
+│   ├── messages.py            # 消息协议
+│   └── error_codes.py         # 错误码定义
+├── state/                      # 状态管理
+│   ├── __init__.py
+│   └── manager.py             # 状态管理器
+├── tests/                      # 单元测试
+│   ├── __init__.py
+│   ├── test_state_manager.py
+│   ├── test_napcat_bridge.py
+│   ├── test_message_bus.py
+│   ├── test_command_module.py
+│   └── test_cherrystudio_module.py
 ├── Configuration/              # 配置文件
-│   ├── config.json             # 全局设置（不纳入版本控制）
-│   └── BotSettingConfig.json   # 机器人显示文本
-├── OrderSystem/                # 命令系统（模块化）
+│   └── config.example.json
+├── docs/                       # 文档
+│   └── PROTOCOL.md            # 协议文档
 ├── Temp/                       # 运行时数据
-├── QQConversationRecord/       # Agent 会话（自动生成）
-└── PlayerLog/                  # 群聊日志（自动生成）
+├── PlayerLog/                  # 群聊日志
+├── QQConversationRecord/       # Agent会话记录
+├── pyproject.toml              # 项目配置
+└── README.md                   # 本文档
 ```
 
 ---
 
-## 常见问题
+## 开发指南
 
-**Q: NapCat 连接失败？**  
-确保 NapCatQQ 已启动并启用 WebSocket。检查 `config.json` 中 `napcat` 配置。
+### 添加新命令
 
-**Q: 如何限制只在特定群回复？**  
-设置 `auto_reply.reply_to_groups` 为群号列表。
+1. 在 `modules/commands/builtin.py` 中创建命令类：
 
-**Q: 如何添加新 LLM？**  
-在 `llm` 数组中添加新条目，需 OpenAI 兼容 API。
+```python
+from modules.command_module import Command, CommandContext
+from protocols.messages import ParsedMessage
 
-**Q: bridge.pid 是什么？**  
-运行时进程锁，防止重复启动。已在 `.gitignore` 中排除。
+class MyCommand(Command):
+    name = "mycmd"
+    description = "我的命令"
+
+    async def handle(self, args: str, msg: ParsedMessage, ctx: CommandContext) -> str | None:
+        return "Hello from my command!"
+```
+
+2. 在 `CommandRegistry.discover_builtin()` 中注册：
+
+```python
+from modules.commands.builtin import MyCommand
+self.register(MyCommand())
+```
+
+### 添加新过滤器
+
+1. 创建过滤器类：
+
+```python
+from modules.message_bus import MessageFilter
+from protocols.messages import RawMessage
+
+class MyFilter(MessageFilter):
+    async def should_pass(self, msg: RawMessage) -> bool:
+        # 返回 True 允许通过，False 拦截
+        return True
+```
+
+2. 添加到 MessageBus：
+
+```python
+message_bus.add_filter(MyFilter())
+```
+
+---
+
+## 故障排查
+
+### 常见问题
+
+1. **NapCat 连接失败 (BRG-1001)**
+   - 检查 NapCatQQ 是否运行
+   - 验证 WebSocket 端口配置
+   - 检查 Access Token
+
+2. **命令无响应 (BRG-3001)**
+   - 确认命令语法正确
+   - 检查命令模块是否启用
+
+3. **AI服务失败 (BRG-4001)**
+   - 检查 CherryStudio 是否运行
+   - 验证 API Key 配置
+   - 查看网络连接
+
+### 日志位置
+
+- 控制台输出: 实时日志
+- 文件日志: `PlayerLog/` 目录
 
 ---
 
 ## 许可证
 
-[MIT License](LICENSE)
+MIT License
+
+---
+
+## 版本历史
+
+### v3.0.0 (2026-06-06)
+- ✨ 完全重构的模块化架构
+- ✨ 标准化消息协议
+- ✨ 统一错误码体系
+- ✨ 91个单元测试
+- ✨ 热重载支持
+- ✨ 异步任务隔离
+
+### v2.0.0
+- 初始版本
+
+---
+
+*最后更新: 2026-06-06*
