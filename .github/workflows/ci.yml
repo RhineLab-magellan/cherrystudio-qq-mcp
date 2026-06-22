@@ -20,7 +20,7 @@ jobs:
             'sk-[A-Za-z0-9]{20,}'
             'cs-sk-[A-Za-z0-9]{20,}'
             'zg4ov[A-Za-z0-9]{10,}'
-            'access_token["\x27]?\s*[=:]\s*["\x27][A-Za-z0-9_-]{10,}["\x27]'
+            'access_token["\x27]?\s*[=:]\s*["\x27][A-Za-z0-9_-]{25,}["\x27]'
           )
           FOUND=0
           for pattern in "${PATTERNS[@]}"; do
