@@ -15,16 +15,16 @@ jobs:
       - name: Scan for API keys and tokens
         run: |
           echo "=== Scanning for hardcoded secrets ==="
-          # Common API key patterns
+          # Common API key patterns (match quoted/assigned values only, not code references)
           PATTERNS=(
             'sk-[A-Za-z0-9]{20,}'
             'cs-sk-[A-Za-z0-9]{20,}'
             'zg4ov[A-Za-z0-9]{10,}'
-            'access_token.*[A-Za-z0-9]{10,}'
+            'access_token["\x27]?\s*[=:]\s*["\x27][A-Za-z0-9_-]{10,}["\x27]'
           )
           FOUND=0
           for pattern in "${PATTERNS[@]}"; do
-            if grep -rPn --include="*.py" --include="*.json" --include="*.txt" "$pattern" . 2>/dev/null; then
+            if grep -rPn --include="*.py" --include="*.json" --include="*.txt" --include="*.md" "$pattern" . 2>/dev/null; then
               echo "::error::Found potential secret matching: $pattern"
               FOUND=1
             fi

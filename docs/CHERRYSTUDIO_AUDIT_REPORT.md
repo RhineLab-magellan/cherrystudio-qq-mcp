@@ -195,12 +195,12 @@ curl http://127.0.0.1:23333/v1/agents
 
 ### Current Config State
 
-**Active config file**: `C:\CherryStudio\qq-mcp-bridge\config.json` (root directory, preferred by Server.__init__)
+**Active config file**: `<project_root>/config.json` (root directory, preferred by Server.__init__)
 
 | Config Key | Present | Value | Status |
 |------------|---------|-------|--------|
 | `cherrystudio` (section) | NO | - | Legacy adapter triggered |
-| `cherry_api_key` | YES | `cs-sk-b9f3be95-...` | Legacy key, adapted to `cherrystudio.api_key` |
+| `cherry_api_key` | YES | `cs-sk-xxxx...` | Legacy key, adapted to `cherrystudio.api_key` |
 | `agent_api_url` | NO | (defaults to `http://127.0.0.1:23333`) | **WARNING**: Not explicitly set |
 | `mcp_server_name` | YES | `"QQ Bridge"` | Adapted to `cherrystudio.mcp_server_name` |
 | `default_agent` | YES | `"麦哲伦QQ"` | Used as display name for agent ID resolution |
@@ -208,7 +208,7 @@ curl http://127.0.0.1:23333/v1/agents
 | `agent_timeout_seconds` | YES | `60` | But SSE total_timeout uses 600s from `_agent_timeout` |
 | `napcat.ws_host` | YES | `"127.0.0.1"` | OK |
 | `napcat.ws_port` | YES | `3001` | OK |
-| `napcat.access_token` | YES | `"zg4ovY8TVkOQVXY2"` | OK |
+| `napcat.access_token` | YES | `"<your_token>"` | OK |
 | `llm` (providers) | YES | 2 providers (OpenCode, DeepSeek) | Adapted to `llm_providers` |
 | `default_llm.provider` | YES | `0` (OpenCode) | OK |
 | `default_llm.model` | YES | `"minimax-m2.5"` | OK |
@@ -228,7 +228,7 @@ Synthesized cherrystudio section:
     {
         "mcp_server_path": null,
         "http_api_base": "http://127.0.0.1:23333",  <-- from agent_api_url default
-        "api_key": "cs-sk-b9f3be95-...",
+        "api_key": "cs-sk-xxxx...",
         "legacy_mode": true,
         "mcp_server_name": "QQ Bridge"
     }
@@ -794,17 +794,17 @@ if self.parent_module and self.parent_module.http_client.legacy_mode:
 curl -s http://127.0.0.1:23333/health
 
 # 2. List available agents
-curl -s http://127.0.0.1:23333/v1/agents -H "Authorization: Bearer cs-sk-b9f3be95-56fd-46d8-93a1-77027c7b10d0"
+curl -s http://127.0.0.1:23333/v1/agents -H "Authorization: Bearer cs-sk-your-api-key"
 
 # 3. Check MCP server registration
-curl -s http://127.0.0.1:23333/v1/mcps -H "Authorization: Bearer cs-sk-b9f3be95-56fd-46d8-93a1-77027c7b10d0"
+curl -s http://127.0.0.1:23333/v1/mcps -H "Authorization: Bearer cs-sk-your-api-key"
 
 # 4. List available models
-curl -s http://127.0.0.1:23333/v1/models -H "Authorization: Bearer cs-sk-b9f3be95-56fd-46d8-93a1-77027c7b10d0"
+curl -s http://127.0.0.1:23333/v1/models -H "Authorization: Bearer cs-sk-your-api-key"
 
 # 5. Check bridge logs for BRG-4001 context
 # Look for "SSE 请求失败" lines in:
-# C:\CherryStudio\qq-mcp-bridge\PlayerLog\bridge.log
+# <project_root>/PlayerLog/bridge.log
 ```
 
 ---
